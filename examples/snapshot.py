@@ -6,20 +6,21 @@
 #   https://github.com/adafruit/Adafruit_CircuitPython_SD
 # See the guide here for more details on using SD cards with CircuitPython:
 #   https://learn.adafruit.com/micropython-hardware-sd-cards
+import time
+
 import board
 import busio
 import digitalio
 import storage
-import time
 
 import adafruit_sdcard
 import adafruit_vc0706
 
 
 # Configuration:
-SD_CS_PIN  = board.SD_CS  # CS for SD card (SD_CS is for Feather Adalogger)
-RX_PIN     = board.RX     # RX pin of board, connected to VC0706 TX
-TX_PIN     = board.TX     # TX pin of board, connected to VC0706 RX
+SD_CS_PIN = board.SD_CS  # CS for SD card (SD_CS is for Feather Adalogger)
+RX_PIN = board.RX     # RX pin of board, connected to VC0706 TX
+TX_PIN = board.TX     # TX pin of board, connected to VC0706 RX
 IMAGE_FILE = '/sd/image.jpg'  # Full path to file name to save captured image.
                               # Will overwrite!
 
@@ -40,16 +41,16 @@ print('VC0706 version:')
 print(vc0706.version)
 
 # Set the image size.
-vc0706.image_size = adafruit_vc0706.VC0706_640x480 # Or set VC0706_320x240 or
-                                                   # VC0706_160x120
+vc0706.image_size = adafruit_vc0706.IMAGE_SIZE_640x480 # Or set IMAGE_SIZE_320x240 or
+                                                       # IMAGE_SIZE_160x120
 # Note you can also read the property and compare against those values to
 # see the current size:
 size = vc0706.image_size
-if size == adafruit_vc0706.VC0706_640x480:
+if size == adafruit_vc0706.IMAGE_SIZE_640x480:
     print('Using 640x480 size image.')
-elif size == adafruit_vc0706.VC0706_320x240:
+elif size == adafruit_vc0706.IMAGE_SIZE_320x240:
     print('Using 320x240 size image.')
-elif size == adafruit_vc0706.VC0706_160x120:
+elif size == adafruit_vc0706.IMAGE_SIZE_160x120:
     print('Using 160x120 size image.')
 
 # Take a picture.
