@@ -28,6 +28,19 @@ image data from the camera over a serial connection.  See examples for demo
 of saving image to a SD card (must be wired up separately).
 
 * Author(s): Tony DiCola
+
+Implementation Notes
+--------------------
+
+**Hardware:**
+
+* Adafruit `TTL Serial JPEG Camera with NTSC Video
+  <https://www.adafruit.com/product/397>`_ (Product ID: 397)
+
+**Software and Dependencies:**
+
+* Adafruit CircuitPython firmware for the ESP8622 and M0-based boards:
+  https://github.com/adafruit/circuitpython/releases
 """
 import busio
 from micropython import const
