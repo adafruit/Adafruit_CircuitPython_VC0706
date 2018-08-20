@@ -19,8 +19,6 @@ import adafruit_vc0706
 
 # Configuration:
 SD_CS_PIN = board.D10  # CS for SD card (SD_CS is for Feather Adalogger)
-RX_PIN = board.RX     # RX pin of board, connected to VC0706 TX
-TX_PIN = board.TX     # TX pin of board, connected to VC0706 RX
 IMAGE_FILE = '/sd/image.jpg'  # Full path to file name to save captured image.
                               # Will overwrite!
 
