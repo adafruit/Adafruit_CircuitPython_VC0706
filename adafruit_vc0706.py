@@ -141,7 +141,7 @@ class VC0706:
         else:
             raise ValueError("Unsupported baud rate")
         args = [0x03, 0x01, (divider>>8) & 0xFF, divider & 0xFF]
-        self._run_command(_SET_PORT, args, 7)
+        self._run_command(_SET_PORT, bytes(args), 7)
         print([hex(i) for i in self._buffer[0:10]])
         self._uart.baudrate = baud
 

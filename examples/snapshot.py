@@ -18,7 +18,7 @@ import adafruit_vc0706
 
 
 # Configuration:
-SD_CS_PIN = board.SD_CS  # CS for SD card (SD_CS is for Feather Adalogger)
+SD_CS_PIN = board.D10  # CS for SD card (SD_CS is for Feather Adalogger)
 RX_PIN = board.RX     # RX pin of board, connected to VC0706 TX
 TX_PIN = board.TX     # TX pin of board, connected to VC0706 RX
 IMAGE_FILE = '/sd/image.jpg'  # Full path to file name to save captured image.
@@ -33,12 +33,17 @@ sdcard = adafruit_sdcard.SDCard(spi, sd_cs)
 vfs = storage.VfsFat(sdcard)
 storage.mount(vfs, '/sd')
 
-# Setup VC0706.
-vc0706 = adafruit_vc0706.VC0706(RX_PIN, TX_PIN)
+# Create a serial connection for the VC0706 connection, speed is auto-detected.
+uart = busio.UART(board.TX, board.RX, timeout=250)
+# Setup VC0706 camera
+vc0706 = adafruit_vc0706.VC0706(uart)
 
 # Print the version string from the camera.
 print('VC0706 version:')
 print(vc0706.version)
+
+# Set the baud rate to 115200 for fastest transfer (its the max speed)
+vc0706.baudrate = 115200
 
 # Set the image size.
 vc0706.image_size = adafruit_vc0706.IMAGE_SIZE_640x480 # Or set IMAGE_SIZE_320x240 or
