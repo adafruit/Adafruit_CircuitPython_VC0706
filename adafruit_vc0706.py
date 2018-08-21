@@ -97,6 +97,8 @@ _CAMERA_DELAY               = const(10)
 
 class VC0706:
     """Driver for VC0706 serial TTL camera module.
+       :param ~busio.UART uart: uart serial or compatible interface
+       :param int buffer_size: Receive buffer size
     """
     def __init__(self, uart, *, buffer_size=100):
         self._uart = uart
@@ -106,7 +108,7 @@ class VC0706:
         for _ in range(2): # 2 retries to reset then check resetted baudrate
             for baud in (9600, 19200, 38400, 57600, 115200):
                 self._uart.baudrate = baud
-                if self._run_command(_RESET, bytes([0x00]), 5):
+                if self._run_command(_RESET, b'\x00', 5):
                     break
             else: # for:else rocks! http://book.pythontips.com/en/latest/for_-_else.html
                 raise RuntimeError('Failed to get response from VC0706, check wiring!')
@@ -115,7 +117,7 @@ class VC0706:
     def version(self):
         """Return camera version byte string."""
         # Clear buffer to ensure the end of a string can be found.
-        self._send_command(_GEN_VERSION, bytes([0x01]))
+        self._send_command(_GEN_VERSION, b'\x01')
         readlen = self._read_response(self._buffer, len(self._buffer))
         return str(self._buffer[:readlen], 'ascii')
 
@@ -142,7 +144,6 @@ class VC0706:
             raise ValueError("Unsupported baud rate")
         args = [0x03, 0x01, (divider>>8) & 0xFF, divider & 0xFF]
         self._run_command(_SET_PORT, bytes(args), 7)
-        print([hex(i) for i in self._buffer[0:10]])
         self._uart.baudrate = baud
 
     @property
@@ -151,7 +152,7 @@ class VC0706:
            IMAGE_SIZE_320x240, or IMAGE_SIZE_160x120.
         """
         if not self._run_command(_READ_DATA,
-                                 bytes([0x4, 0x4, 0x1, 0x00, 0x19]),
+                                 b'\0x04\x04\x01\x00\x19',
                                  6):
             raise RuntimeError('Failed to read image size!')
         return self._buffer[5]
@@ -170,7 +171,7 @@ class VC0706:
     def frame_length(self):
         """Return the length in bytes of the currently capture frame/picture.
         """
-        if not self._run_command(_GET_FBUF_LEN, bytes([0x01, 0x00]), 9):
+        if not self._run_command(_GET_FBUF_LEN, b'\x01\x00', 9):
             return 0
         frame_length = self._buffer[5]
         frame_length <<= 8
