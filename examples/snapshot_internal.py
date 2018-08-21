@@ -10,16 +10,16 @@ import busio
 import adafruit_vc0706
 
 # Configuration:
-RX_PIN = board.RX     # RX pin of board, connected to VC0706 TX
-TX_PIN = board.TX     # TX pin of board, connected to VC0706 RX
 IMAGE_FILE = '/image.jpg' # Full path to file name to save captured image.
                           # Will overwrite!
 
 # Setup SPI bus (hardware SPI).
 spi = busio.SPI(board.SCK, MOSI=board.MOSI, MISO=board.MISO)
 
-# Setup VC0706.
-vc0706 = adafruit_vc0706.VC0706(RX_PIN, TX_PIN)
+# Create a serial connection for the VC0706 connection, speed is auto-detected.
+uart = busio.UART(board.TX, board.RX, timeout=250)
+# Setup VC0706 camera
+vc0706 = adafruit_vc0706.VC0706(uart)
 
 # Print the version string from the camera.
 print('VC0706 version:')

@@ -42,7 +42,6 @@ Implementation Notes
 * Adafruit CircuitPython firmware for the ESP8622 and M0-based boards:
   https://github.com/adafruit/circuitpython/releases
 """
-import busio
 from micropython import const
 
 __version__ = "0.0.0-auto.0"
@@ -79,6 +78,11 @@ IMAGE_SIZE_640x480              = const(0x00)
 IMAGE_SIZE_320x240              = const(0x11)
 IMAGE_SIZE_160x120              = const(0x22)
 # pylint: enable=invalid-name
+_BAUDRATE_9600                   = const(0xAEC8)
+_BAUDRATE_19200                  = const(0x56E4)
+_BAUDRATE_38400                  = const(0x2AF2)
+_BAUDRATE_57600                  = const(0x1C1C)
+_BAUDRATE_115200                 = const(0x0DA6)
 
 _MOTIONCONTROL        = const(0x0)
 _UARTMOTION           = const(0x01)
@@ -93,28 +97,54 @@ _CAMERA_DELAY               = const(10)
 
 class VC0706:
     """Driver for VC0706 serial TTL camera module.
-
-       :param ~microcontroller.Pin rx: Receive pin
-       :param ~microcontroller.Pin tx: Transmit pin
-       :param int baudrate: Serial connection speed
-       :param int timeout: Read timeout in seconds
+       :param ~busio.UART uart: uart serial or compatible interface
        :param int buffer_size: Receive buffer size
     """
-    def __init__(self, rx, tx, *, baudrate=38400, timeout=250, buffer_size=100):
-        self._uart = busio.UART(tx, rx, baudrate=baudrate, timeout=timeout)
+    def __init__(self, uart, *, buffer_size=100):
+        self._uart = uart
         self._buffer = bytearray(buffer_size)
         self._frame_ptr = 0
         self._command_header = bytearray(3)
-        if not self._run_command(_RESET, bytes([0x00]), 5):
-            raise RuntimeError('Failed to get response from VC0706, check wiring!')
+        for _ in range(2): # 2 retries to reset then check resetted baudrate
+            for baud in (9600, 19200, 38400, 57600, 115200):
+                self._uart.baudrate = baud
+                if self._run_command(_RESET, b'\x00', 5):
+                    break
+            else: # for:else rocks! http://book.pythontips.com/en/latest/for_-_else.html
+                raise RuntimeError('Failed to get response from VC0706, check wiring!')
 
     @property
     def version(self):
         """Return camera version byte string."""
         # Clear buffer to ensure the end of a string can be found.
-        self._send_command(_GEN_VERSION, bytes([0x01]))
+        self._send_command(_GEN_VERSION, b'\x01')
         readlen = self._read_response(self._buffer, len(self._buffer))
         return str(self._buffer[:readlen], 'ascii')
+
+    @property
+    def baudrate(self):
+        """Return the currently configured baud rate."""
+        return self._uart.baudrate
+
+    @baudrate.setter
+    def baudrate(self, baud):
+        """Set the baudrate to 9600, 19200, 38400, 57600, or 115200. """
+        divider = None
+        if baud == 9600:
+            divider = _BAUDRATE_9600
+        elif baud == 19200:
+            divider = _BAUDRATE_19200
+        elif baud == 38400:
+            divider = _BAUDRATE_38400
+        elif baud == 57600:
+            divider = _BAUDRATE_57600
+        elif baud == 115200:
+            divider = _BAUDRATE_115200
+        else:
+            raise ValueError("Unsupported baud rate")
+        args = [0x03, 0x01, (divider>>8) & 0xFF, divider & 0xFF]
+        self._run_command(_SET_PORT, bytes(args), 7)
+        self._uart.baudrate = baud
 
     @property
     def image_size(self):
@@ -122,7 +152,7 @@ class VC0706:
            IMAGE_SIZE_320x240, or IMAGE_SIZE_160x120.
         """
         if not self._run_command(_READ_DATA,
-                                 bytes([0x4, 0x4, 0x1, 0x00, 0x19]),
+                                 b'\0x04\x04\x01\x00\x19',
                                  6):
             raise RuntimeError('Failed to read image size!')
         return self._buffer[5]
@@ -141,7 +171,7 @@ class VC0706:
     def frame_length(self):
         """Return the length in bytes of the currently capture frame/picture.
         """
-        if not self._run_command(_GET_FBUF_LEN, bytes([0x01, 0x00]), 9):
+        if not self._run_command(_GET_FBUF_LEN, b'\x01\x00', 9):
             return 0
         frame_length = self._buffer[5]
         frame_length <<= 8
@@ -172,7 +202,7 @@ class VC0706:
         args = bytes([0x0C, 0x0, 0x0A, 0, 0, (self._frame_ptr >> 8) & 0xFF,
                       self._frame_ptr & 0xFF, 0, 0, 0, n & 0xFF,
                       (_CAMERA_DELAY >> 8) & 0xFF, _CAMERA_DELAY & 0xFF])
-        if not self._run_command(_READ_FBUF, args, 5):
+        if not self._run_command(_READ_FBUF, args, 5, flush=False):
             return 0
         if self._read_response(self._buffer, n+5) == 0:
             return 0
@@ -192,7 +222,7 @@ class VC0706:
         return True
 
     def _read_response(self, result, numbytes):
-        return self._uart.readinto(result, numbytes)
+        return self._uart.readinto(memoryview(result)[0:numbytes])
 
     def _verify_response(self, cmd):
         return (self._buffer[0] == 0x76 and self._buffer[1] == _SERIAL and
