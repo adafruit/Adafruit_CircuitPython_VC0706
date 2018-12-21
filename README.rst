@@ -10,8 +10,8 @@ Introduction
     :target: https://discord.gg/nBQh6qu
     :alt: Discord
 
-.. image:: https://travis-ci.org/adafruit/Adafruit_CircuitPython_VC0706.svg?branch=master
-    :target: https://travis-ci.org/adafruit/Adafruit_CircuitPython_VC0706
+.. image:: https://travis-ci.com/adafruit/Adafruit_CircuitPython_VC0706.svg?branch=master
+    :target: https://travis-ci.com/adafruit/Adafruit_CircuitPython_VC0706
     :alt: Build Status
 
 CircuitPython module for use with the `VC0706 serial TTL camera <https://www.adafruit.com/product/397>`_.  Allows basic image capture and download of image data from the camera over a serial connection.  See examples for demo
