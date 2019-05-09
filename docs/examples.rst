@@ -8,5 +8,5 @@ Ensure your device works with this simple test.
     :linenos:
 
 .. literalinclude:: ../examples/vc0706_snapshot_simpletest.py
-    :caption: examples/vc0706_snapshot.py
+    :caption: examples/vc0706_snapshot_simpletest.py
     :linenos:
