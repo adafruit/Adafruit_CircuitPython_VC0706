@@ -1,11 +1,12 @@
-# VC0706 image capture to SD card demo.
-# You must wire up the VC0706 to the board's serial port, and a SD card holder
-# to the board's SPI bus.  Use the Feather M0 Adalogger as it includes a SD
-# card holder pre-wired to the board--this sketch is setup to use the Adalogger!
-# In addition you MUST also install the following dependent SD card library:
-#   https://github.com/adafruit/Adafruit_CircuitPython_SD
-# See the guide here for more details on using SD cards with CircuitPython:
-#   https://learn.adafruit.com/micropython-hardware-sd-cards
+"""VC0706 image capture to SD card demo.
+You must wire up the VC0706 to the board's serial port, and a SD card holder
+to the board's SPI bus.  Use the Feather M0 Adalogger as it includes a SD
+card holder pre-wired to the board--this sketch is setup to use the Adalogger!
+In addition you MUST also install the following dependent SD card library:
+https://github.com/adafruit/Adafruit_CircuitPython_SD
+See the guide here for more details on using SD cards with CircuitPython:
+https://learn.adafruit.com/micropython-hardware-sd-cards"""
+
 import time
 
 import board

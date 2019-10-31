@@ -1,18 +1,30 @@
-# VC0706 image capture to local storage.
-# You must wire up the VC0706 to a USB or hardware serial port.
-# Primarily for use with Linux/Raspberry Pi but also can work with Mac/Windows
+"""VC0706 image capture to local storage.
+You must wire up the VC0706 to a USB or hardware serial port.
+Primarily for use with Linux/Raspberry Pi but also can work with Mac/Windows"""
 
 import time
-import serial
+import busio
+import board
 import adafruit_vc0706
 
-# Configuration:
-IMAGE_FILE = 'image.jpg'  # Full path to file name to save captured image.
-                          # Will overwrite!
+# Set this to the full path to the file name to save the captured image. WILL OVERWRITE!
+# CircuitPython internal filesystem configuration:
+IMAGE_FILE = '/image.jpg'
+# USB to serial adapter configuration:
+# IMAGE_FILE = 'image.jpg'  # Full path to file name to save captured image. Will overwrite!
+# Raspberry Pi configuration:
+# IMAGE_FILE = '/home/pi/image.jpg'  # Full path to file name to save image. Will overwrite!
 
-# Create a serial connection for the VC0706 connection, speed is auto-detected.
+
+# Create a serial connection for the VC0706 connection.
+uart = busio.UART(board.TX, board.RX, baudrate=115200, timeout=0.25)
 # Update the serial port name to match the serial connection for the camera!
-uart = serial.Serial("/dev/ttyUSB0", timeout=0.25)
+# For use with USB to serial adapter:
+# import serial
+# uart = serial.Serial("/dev/ttyUSB0", baudrate=115200, timeout=0.25)
+# For use with Raspberry Pi:
+# import serial
+# uart = serial.Serial("/dev/ttyS0", baudrate=115200, timeout=0.25)
 
 # Setup VC0706 camera
 vc0706 = adafruit_vc0706.VC0706(uart)
@@ -21,12 +33,10 @@ vc0706 = adafruit_vc0706.VC0706(uart)
 print('VC0706 version:')
 print(vc0706.version)
 
-# Set the baud rate to 115200 for fastest transfer (its the max speed)
-vc0706.baudrate = 115200
-
 # Set the image size.
-vc0706.image_size = adafruit_vc0706.IMAGE_SIZE_640x480 # Or set IMAGE_SIZE_320x240 or
-                                                       # IMAGE_SIZE_160x120
+vc0706.image_size = adafruit_vc0706.IMAGE_SIZE_640x480
+# Or set IMAGE_SIZE_320x240 or IMAGE_SIZE_160x120
+
 # Note you can also read the property and compare against those values to
 # see the current size:
 size = vc0706.image_size
