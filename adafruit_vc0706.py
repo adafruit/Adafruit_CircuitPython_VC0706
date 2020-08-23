@@ -47,7 +47,6 @@ from micropython import const
 __version__ = "0.0.0-auto.0"
 __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_VC0706.git"
 
-# pylint: disable=bad-whitespace
 _SERIAL = const(0x00)
 _RESET = const(0x26)
 _GEN_VERSION = const(0x11)
@@ -92,7 +91,6 @@ __SET_ZOOM = const(0x52)
 __GET_ZOOM = const(0x53)
 
 _CAMERA_DELAY = const(10)
-# pylint: enable=bad-whitespace
 
 
 class VC0706:
