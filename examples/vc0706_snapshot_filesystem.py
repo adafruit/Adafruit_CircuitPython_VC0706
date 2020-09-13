@@ -63,7 +63,7 @@ print("Picture size (bytes): {}".format(frame_length))
 # You MUST keep the buffer size under 100!
 print("Writing image: {}".format(IMAGE_FILE), end="", flush=True)
 stamp = time.monotonic()
-#Pylint doesn't like the wcount variable being lowercase, but uppercase makes less sense
+# Pylint doesn't like the wcount variable being lowercase, but uppercase makes less sense
 # pylint: disable=invalid-name
 with open(IMAGE_FILE, "wb") as outfile:
     wcount = 0
