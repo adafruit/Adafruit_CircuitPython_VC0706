@@ -6,7 +6,6 @@ For PC, you must wire up the VC0706 to a USB or hardware serial port.
 Primarily for use with Linux/Raspberry Pi but also can work with Mac/Windows"""
 
 import time
-import board
 import adafruit_vc0706
 
 # Set the target, or what we're running this on.
@@ -33,12 +32,17 @@ OVERWRITE = True  # Will overwrite!
 UART = None
 if TARGET == "MC":
     # MC Hardware UART
+    import board
+
     UART = board.UART()
+
 elif TARGET == "PC":
     # USB UART
+    # Be sure to modify this to the correct device! (Windows COM, etc)
     import serial
 
     UART = serial.Serial("/dev/ttyUSB0", baudrate=115200, timeout=0.25)
+
 elif TARGET == "PI":
     # Pi Hardware UART
     import serial
