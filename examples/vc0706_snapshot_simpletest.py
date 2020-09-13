@@ -73,6 +73,7 @@ print("Picture size (bytes): {}".format(frame_length))
 # You MUST keep the buffer size under 100!
 print("Writing image: {}".format(IMAGE_FILE), end="")
 stamp = time.monotonic()
+# pylint: disable=invalid-name
 with open(IMAGE_FILE, "wb") as outfile:
     wcount = 0
     while frame_length > 0:
@@ -92,7 +93,8 @@ with open(IMAGE_FILE, "wb") as outfile:
         if wcount >= 64:
             print(".", end="")
             wcount = 0
+# pylint: enable=invalid-name
 print()
 print("Finished in %0.1f seconds!" % (time.monotonic() - stamp))
-#Turn the camera back into video mode.
+# Turn the camera back into video mode.
 vc0706.resume_video()
