@@ -95,8 +95,8 @@ _CAMERA_DELAY = const(10)
 
 class VC0706:
     """Driver for VC0706 serial TTL camera module.
-       :param ~busio.UART uart: uart serial or compatible interface
-       :param int buffer_size: Receive buffer size
+    :param ~busio.UART uart: uart serial or compatible interface
+    :param int buffer_size: Receive buffer size
     """
 
     def __init__(self, uart, *, buffer_size=100):
@@ -148,7 +148,7 @@ class VC0706:
     @property
     def image_size(self):
         """Get the current image size, will return a value of IMAGE_SIZE_640x480,
-           IMAGE_SIZE_320x240, or IMAGE_SIZE_160x120.
+        IMAGE_SIZE_320x240, or IMAGE_SIZE_160x120.
         """
         if not self._run_command(_READ_DATA, b"\0x04\x04\x01\x00\x19", 6):
             raise RuntimeError("Failed to read image size!")
@@ -157,7 +157,7 @@ class VC0706:
     @image_size.setter
     def image_size(self, size):
         """Set the image size to a value of IMAGE_SIZE_640x480, IMAGE_SIZE_320x240, or
-           IMAGE_SIZE_160x120.
+        IMAGE_SIZE_160x120.
         """
         if size not in (IMAGE_SIZE_640x480, IMAGE_SIZE_320x240, IMAGE_SIZE_160x120):
             raise ValueError(
@@ -170,8 +170,7 @@ class VC0706:
 
     @property
     def frame_length(self):
-        """Return the length in bytes of the currently capture frame/picture.
-        """
+        """Return the length in bytes of the currently capture frame/picture."""
         if not self._run_command(_GET_FBUF_LEN, b"\x01\x00", 9):
             return 0
         frame_length = self._buffer[5]
@@ -184,10 +183,15 @@ class VC0706:
         return frame_length
 
     def take_picture(self):
-        """Tell the camera to take a picture.  Returns True if successful.
-        """
+        """Tell the camera to take a picture.  Returns True if successful."""
         self._frame_ptr = 0
         return self._run_command(_FBUF_CTRL, bytes([0x1, _STOPCURRENTFRAME]), 5)
+
+    def resume_video(self):
+        """Tell the camera to resume being a camera after the video has stopped
+        (Such as what happens when a picture is taken).
+        """
+        return self._run_command(_FBUF_CTRL, bytes([0x1, _RESUMEFRAME]), 5)
 
     def read_picture_into(self, buf):
         """Read the next bytes of frame/picture data into the provided buffer.
