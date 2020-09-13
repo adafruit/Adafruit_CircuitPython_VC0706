@@ -42,6 +42,7 @@ Implementation Notes
 * Adafruit CircuitPython firmware for the ESP8622 and M0-based boards:
   https://github.com/adafruit/circuitpython/releases
 """
+from os import listdir, chdir
 from micropython import const
 
 __version__ = "0.0.0-auto.0"
@@ -183,7 +184,9 @@ class VC0706:
         return frame_length
 
     def take_picture(self):
-        """Tell the camera to take a picture.  Returns True if successful."""
+        """Tell the camera to store a picture. It still needs to be saved.
+        Returns True if successful.
+        """
         self._frame_ptr = 0
         return self._run_command(_FBUF_CTRL, bytes([0x1, _STOPCURRENTFRAME]), 5)
 
@@ -192,6 +195,59 @@ class VC0706:
         (Such as what happens when a picture is taken).
         """
         return self._run_command(_FBUF_CTRL, bytes([0x1, _RESUMEFRAME]), 5)
+
+    def save_image(self, name="capture.jpg", overwrite=False):
+        """Saves a picture that was stored. Optional arguments for overwriting
+        the image.
+        """
+        # We don't want to overwrite unless we're told to.
+        # This involves checking to see if a file exists.
+        # Which requires checking if we were given a directory.
+        if name[0] == "/":
+            name = name[1:]  # Remove any leading slashes.
+        name = name.split("/")  # Separate into directories.
+        for directory in name[:-1]:  # Ignore the last one, it's the filename.
+            chdir(directory)  # OS will fail if the directory doesn't exist.
+        if name[-1] in listdir() and not overwrite:
+            # File exists. We're told not to overwrite it.
+            raise ValueError("File exists and overwrite is False!")
+        # Size of picture.
+        frame_length = self.frame_length
+        # The file doesn't exist, or we're good to overwrite it.
+        with open(name[-1], "wb") as outfile:
+            while frame_length > 0:
+                # Compute how much data is left to read as the lesser of remaining bytes
+                # or the copy buffer size (32 bytes at a time).  Buffer size MUST be
+                # a multiple of 4 and under 100.  Stick with 32!
+                to_read = min(frame_length, 32)
+                copy_buffer = bytearray(to_read)
+                # Now read picture data into the copy buffer.
+                if self.read_picture_into(copy_buffer) == 0:
+                    raise RuntimeError("Failed to read picture frame data!")
+                # Now write the data to the file, and decrement remaining bytes.
+                outfile.write(copy_buffer)
+                frame_length -= 32
+        # Return to our original directory.
+        for directory in name[:-1]:
+            chdir("..")
+        return True
+
+    def take_and_save(self, name="capture.jpg", overwrite=False):
+        """Take an image, save it, and resume the camera.
+        Has options for overwriting existing images and image name.
+        Tried having it set the imagesize, but that led to issues.
+        """
+        # Take the picture.
+        if not self.take_picture():
+            self.resume_video()
+            raise RuntimeError("Failed to take picture!")
+        # Save the picture.
+        if not self.save_image(name, overwrite):
+            self.resume_video()
+            raise RuntimeError("Failed to save picture!")
+        # Resume the video.
+        self.resume_video()
+        return True
 
     def read_picture_into(self, buf):
         """Read the next bytes of frame/picture data into the provided buffer.
