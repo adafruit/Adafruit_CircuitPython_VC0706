@@ -33,7 +33,7 @@ vfs = storage.VfsFat(sdcard)
 storage.mount(vfs, "/sd")
 
 # Create a serial connection for the VC0706 connection, speed is auto-detected.
-uart = busio.UART(board.TX, board.RX, timeout=250)
+uart = busio.UART(board.TX, board.RX)
 # Setup VC0706 camera
 vc0706 = adafruit_vc0706.VC0706(uart)
 
@@ -72,6 +72,7 @@ print("Picture size (bytes): {}".format(frame_length))
 # This will write 50 bytes at a time using a small buffer.
 # You MUST keep the buffer size under 100!
 print("Writing image: {}".format(IMAGE_FILE), end="")
+stamp = time.monotonic()
 with open(IMAGE_FILE, "wb") as outfile:
     wcount = 0
     while frame_length > 0:
@@ -92,4 +93,6 @@ with open(IMAGE_FILE, "wb") as outfile:
             print(".", end="")
             wcount = 0
 print()
-print("Finished!")
+print("Finished in %0.1f seconds!" % (time.monotonic() - stamp))
+#Turn the camera back into video mode.
+vc0706.resume_video()

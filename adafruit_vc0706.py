@@ -188,6 +188,12 @@ class VC0706:
         """
         self._frame_ptr = 0
         return self._run_command(_FBUF_CTRL, bytes([0x1, _STOPCURRENTFRAME]), 5)
+    
+    def resume_video(self):
+        """Tell the camera to resume being a camera after the video has stopped
+        (Such as what happens when a picture is taken).
+        """
+        return self._run_command(_FBUF_CTRL, bytes([0x1, _RESUMEFRAME]), 5)
 
     def read_picture_into(self, buf):
         """Read the next bytes of frame/picture data into the provided buffer.

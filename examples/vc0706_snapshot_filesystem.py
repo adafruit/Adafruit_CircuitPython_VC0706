@@ -85,3 +85,5 @@ with open(IMAGE_FILE, "wb") as outfile:
             wcount = 0
 print()
 print("Finished in %0.1f seconds!" % (time.monotonic() - stamp))
+#Turn the camera back into video mode.
+vc0706.resume_video()
