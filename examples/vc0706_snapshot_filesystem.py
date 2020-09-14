@@ -13,41 +13,33 @@ TARGET = "MC"  # CircuitPython internal filesystem configuration.
 # TARGET = "PC" #USB configuration.
 # TARGET = "PI" #Pi hardwired configuration.
 
-
-# Set this to the path to the file name to save the captured image.
-IMAGE_FILE = None
-if TARGET == "MC":
-    IMAGE_FILE = "/image.jpg"  # CircuitPython.
-elif TARGET == "PC":
-    IMAGE_FILE = "image.jpg"  # USB storage.
-elif TARGET == "PI":
-    IMAGE_FILE = "/home/pi/image.jpg"  # Pi storage
-
 # Set if we want the image to be overwritten.
 # If FALSE it will check to see if the image is there and fail if it is.
 # If TRUE it doesn't check anything and happily overwrites.
 OVERWRITE = True  # Will overwrite!
 
-# Create a serial connection for the VC0706 connection.
+# Set this to the path to the file name to save the captured image.
+# Also set up the serial connection to the camera at the same time.
+IMAGE_FILE = None
 UART = None
 if TARGET == "MC":
-    # MC Hardware UART
-    import board
+    import board  # MC Hardware UART
 
     UART = board.UART()
-
+    IMAGE_FILE = "/image.jpg"  # CircuitPython.
 elif TARGET == "PC":
     # USB UART
     # Be sure to modify this to the correct device! (Windows COM, etc)
     import serial
 
     UART = serial.Serial("/dev/ttyUSB0", baudrate=115200, timeout=0.25)
-
+    IMAGE_FILE = "image.jpg"  # USB storage.
 elif TARGET == "PI":
     # Pi Hardware UART
     import serial
 
     UART = serial.Serial("/dev/ttyS0", baudrate=115200, timeout=0.25)
+    IMAGE_FILE = "/home/pi/image.jpg"  # Pi storage
 
 # Setup VC0706 camera
 vc0706 = adafruit_vc0706.VC0706(UART)
