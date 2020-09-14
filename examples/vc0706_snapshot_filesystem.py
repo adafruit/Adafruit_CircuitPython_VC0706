@@ -49,17 +49,17 @@ print("VC0706 version:")
 print(vc0706.version)
 
 # Set the image size.
-vc0706.image_size = adafruit_vc0706.IMAGE_SIZE_640x480
-# Or set IMAGE_SIZE_320x240 or IMAGE_SIZE_160x120
-
+IMAGE_SIZE = adafruit_vc0706.IMAGE_SIZE_640x480
+# Or set IMAGE_SIZE_320x240 or
+# IMAGE_SIZE_160x120
+# take_and_save defaults to whatever you set it as.
 # Note you can also read the property and compare against those values to
-# see the current size:
-size = vc0706.image_size
-if size == adafruit_vc0706.IMAGE_SIZE_640x480:
+# Just use vc0706.image_size and compare it.
+if IMAGE_SIZE == adafruit_vc0706.IMAGE_SIZE_640x480:
     print("Using 640x480 size image.")
-elif size == adafruit_vc0706.IMAGE_SIZE_320x240:
+elif IMAGE_SIZE == adafruit_vc0706.IMAGE_SIZE_320x240:
     print("Using 320x240 size image.")
-elif size == adafruit_vc0706.IMAGE_SIZE_160x120:
+elif IMAGE_SIZE == adafruit_vc0706.IMAGE_SIZE_160x120:
     print("Using 160x120 size image.")
 
 # Take a picture.
@@ -68,5 +68,5 @@ time.sleep(3)
 print("SNAP!")
 print("Saving image. This may take some time.")
 stamp = time.monotonic()
-vc0706.take_and_save(IMAGE_FILE, OVERWRITE)
+vc0706.take_and_save(IMAGE_FILE, OVERWRITE, IMAGE_SIZE)
 print("Finished in %0.1f seconds!" % (time.monotonic() - stamp))

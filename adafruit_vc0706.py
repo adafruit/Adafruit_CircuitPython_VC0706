@@ -169,6 +169,17 @@ class VC0706:
             _WRITE_DATA, bytes([0x05, 0x04, 0x01, 0x00, 0x19, size & 0xFF]), 5
         )
 
+    def set_img_size(self, size):
+        """Literally the above, but for use internally."""
+        if size not in (IMAGE_SIZE_640x480, IMAGE_SIZE_320x240, IMAGE_SIZE_160x120):
+            raise ValueError(
+                "Size must be one of IMAGE_SIZE_640x480, IMAGE_SIZE_320x240, or "
+                "IMAGE_SIZE_160x120!"
+            )
+        return self._run_command(
+            _WRITE_DATA, bytes([0x05, 0x04, 0x01, 0x00, 0x19, size & 0xFF]), 5
+        )
+
     @property
     def frame_length(self):
         """Return the length in bytes of the currently capture frame/picture."""
@@ -232,11 +243,14 @@ class VC0706:
             chdir("..")
         return True
 
-    def take_and_save(self, name="capture.jpg", overwrite=False):
+    def take_and_save(self, name="capture.jpg", overwrite=False, size=None):
         """Take an image, save it, and resume the camera.
-        Has options for overwriting existing images and image name.
-        Tried having it set the imagesize, but that led to issues.
+        Has options for name, overwriting existing images, and file size.
+        Defaults to no overwrite and whatever size it was set with.
         """
+        # If we've specified a size, set the camera to that size.
+        if size is not None:
+            self.set_img_size(size)
         # Take the picture.
         if not self.take_picture():
             self.resume_video()
