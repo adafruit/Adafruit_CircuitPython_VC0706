@@ -18,9 +18,8 @@ import adafruit_vc0706
 
 # Configuration:
 SD_CS_PIN = board.D10  # CS for SD card (SD_CS is for Feather Adalogger)
-IMAGE_FILE = "/sd/image.jpg"  # Full path to file name to save captured image.
-OVERWRITE = (
-    True  # Will overwrite! You can set it to False and have it yell at you instead.
+IMAGE_FILE = (
+    "/sd/image.jpg"  # Full path to file name to save captured image. WILL overwrite!
 )
 
 # Setup SPI bus (hardware SPI).
@@ -35,7 +34,7 @@ storage.mount(vfs, "/sd")
 # Create a serial connection for the VC0706 connection, speed is auto-detected.
 uart = board.UART()
 # Setup VC0706 camera
-vc0706 = adafruit_vc0706.VC0706(uart)
+vc0706 = adafruit_vc0706.VC0706Camera(uart)
 
 # Print the version string from the camera.
 print("VC0706 version:")
@@ -44,25 +43,13 @@ print(vc0706.version)
 # Set the baud rate to 115200 for fastest transfer (its the max speed)
 vc0706.baudrate = 115200
 
-# Set the image size.
-IMAGE_SIZE = adafruit_vc0706.IMAGE_SIZE_640x480
-# Or set IMAGE_SIZE_320x240 or
-# IMAGE_SIZE_160x120
-# take_and_save defaults to whatever you set it as.
-# Note you can also read the property and compare against those values to
-# Just use vc0706.image_size and compare it.
-if IMAGE_SIZE == adafruit_vc0706.IMAGE_SIZE_640x480:
-    print("Using 640x480 size image.")
-elif IMAGE_SIZE == adafruit_vc0706.IMAGE_SIZE_320x240:
-    print("Using 320x240 size image.")
-elif IMAGE_SIZE == adafruit_vc0706.IMAGE_SIZE_160x120:
-    print("Using 160x120 size image.")
-
 # Take a picture.
 print("Taking a picture in 3 seconds...")
 time.sleep(3)
 print("SNAP!")
 print("Saving image. This may take some time.")
 stamp = time.monotonic()
-vc0706.take_and_save(IMAGE_FILE, OVERWRITE, IMAGE_SIZE)
+imgfile = open(IMAGE_FILE, "wb")
+vc0706.take_picture(imgfile, 640, 480)  # Can also use 320 x 240 or 160 x 120
+imgfile.close()
 print("Finished in %0.1f seconds!" % (time.monotonic() - stamp))
