@@ -95,6 +95,25 @@ __GET_ZOOM = const(0x53)
 _CAMERA_DELAY = const(10)
 
 
+def get_image_size(width, height):
+    """Takes width and height and returns the proper const."""
+    if (
+        width not in (640, 320, 160)
+        or height not in (480, 240, 120)
+        or width / height != 4 / 3
+    ):
+        raise ValueError("Image size must be 640x480, 320x240, or 160x120!")
+    # Now that we've discarded bad values:
+    size = 0x00  # Default 640x480
+    if width == 640 and height == 480:
+        size = IMAGE_SIZE_640x480
+    elif width == 320 and height == 240:
+        size = IMAGE_SIZE_320x240
+    elif width == 160 and height == 120:
+        size = IMAGE_SIZE_160x120
+    return size
+
+
 class VC0706:
     """Driver for VC0706 serial TTL camera module.
     This version is for legacy code.
@@ -131,6 +150,25 @@ class VC0706:
     @baudrate.setter
     def baudrate(self, baud):
         """Set the baudrate to 9600, 19200, 38400, 57600, or 115200. """
+        divider = None
+        if baud == 9600:
+            divider = _BAUDRATE_9600
+        elif baud == 19200:
+            divider = _BAUDRATE_19200
+        elif baud == 38400:
+            divider = _BAUDRATE_38400
+        elif baud == 57600:
+            divider = _BAUDRATE_57600
+        elif baud == 115200:
+            divider = _BAUDRATE_115200
+        else:
+            raise ValueError("Unsupported baud rate")
+        args = [0x03, 0x01, (divider >> 8) & 0xFF, divider & 0xFF]
+        self._run_command(_SET_PORT, bytes(args), 7)
+        self._uart.baudrate = baud
+
+    def set_baudrate(self, baud):
+        """As above, for internal use"""
         divider = None
         if baud == 9600:
             divider = _BAUDRATE_9600
@@ -282,6 +320,17 @@ class VC0706:
             buf[i] = self._buffer[i]
         return bufflen
 
+    def reset(self):
+        """Resets the camera.
+        It seems that resetting after changing the image works best.
+        This also resets to the default baud rate, so re-update that too.
+        """
+        baud = self.baudrate
+        rst = self._run_command(_RESET, bytes([0x0]), 5)
+        self._uart.baudrate = 37400  # Default baud rate
+        self.set_baudrate(baud)  # Have to reset the baud rate or it fails.
+        return rst
+
     def _run_command(self, cmd, args, resplen, flush=True):
         if flush:
             self._read_response(self._buffer, len(self._buffer))
@@ -366,6 +415,25 @@ class VC0706Camera:
         self._run_command(_SET_PORT, bytes(args), 7)
         self._uart.baudrate = baud
 
+    def set_baudrate(self, baud):
+        """As above. For internal use."""
+        divider = None
+        if baud == 9600:
+            divider = _BAUDRATE_9600
+        elif baud == 19200:
+            divider = _BAUDRATE_19200
+        elif baud == 38400:
+            divider = _BAUDRATE_38400
+        elif baud == 57600:
+            divider = _BAUDRATE_57600
+        elif baud == 115200:
+            divider = _BAUDRATE_115200
+        else:
+            raise ValueError("Unsupported baud rate")
+        args = [0x03, 0x01, (divider >> 8) & 0xFF, divider & 0xFF]
+        self._run_command(_SET_PORT, bytes(args), 7)
+        self._uart.baudrate = baud
+
     @property
     def image_size(self):
         """Get the current image size, will return a value of IMAGE_SIZE_640x480,
@@ -423,17 +491,13 @@ class VC0706Camera:
         if type(buffer) not in (FileIO, bytearray):
             raise ValueError("Buffer must be file or bytearray!")
         if isinstance(buffer, bytearray) == bytearray and len(buffer) > 0:
-            raise ValueError("Buffer bytearray must be empty!")
-        # Check and set image size.
-        # Must be 640x480, 320x240, or 160x120
-        if width == 640 and width / height == 4 / 3:
-            self.set_img_size(IMAGE_SIZE_640x480)
-        elif width == 320 and width / height == 4 / 3:
-            self.set_img_size(IMAGE_SIZE_320x240)
-        elif width == 160 and width / height == 4 / 3:
-            self.set_img_size(IMAGE_SIZE_160x120)
-        else:
-            raise ValueError("Image size must be 640x480, 320x240, or 160x120!")
+            raise ValueError("Buffer bytearray must be size 0 and empty!")
+        # Get the image size const
+        size = get_image_size(width, height)
+        # And set it.
+        self.set_img_size(size)
+        # Reset the camera because the camera works better that way.
+        self.reset()
         # Check format
         # I need a better understanding of *what* to check for this.
         # if fileformat is not [INSERT CHECK HERE]:
@@ -442,9 +506,7 @@ class VC0706Camera:
             raise ValueError("Please ignore fileFormat for now!")
         # OK, so now we have all of our checks out of the way. Time to set up the camera.
         # Now stop the camera.
-        if not self.stop_video():
-            self.resume_video()
-            raise RuntimeError("Failed to take picture!")
+        self.stop_video()
         # Now we try to copy the image to the buffer.
         frame_length = self.frame_length
         while frame_length > 0:
@@ -452,7 +514,14 @@ class VC0706Camera:
             # Copy Buffer size MUST be a multiple of 4
             # and under 100. 32 works best.
             copy_buffer = bytearray(min(frame_length, 32))
-            if self.read_picture_into(copy_buffer) == 0:
+            attempt = self.read_picture_into(copy_buffer)
+            tries = 1
+            while tries <= 3 and attempt == 0:
+                # Try to read the buffer again.
+                # I honestly have no idea if this will work.
+                attempt = self.read_picture_into(copy_buffer)
+                tries += 1
+            if attempt == 0:  # Still failed.
                 raise RuntimeError("Failed to read picture frame data!")
             if isinstance(buffer, bytearray):
                 # Add the buffer to the other buffer
@@ -471,7 +540,10 @@ class VC0706Camera:
         Returns True if successful.
         """
         self._frame_ptr = 0
-        return self._run_command(_FBUF_CTRL, bytes([0x1, _STOPCURRENTFRAME]), 5)
+        attempt = self._run_command(_FBUF_CTRL, bytes([0x1, _STOPCURRENTFRAME]), 5)
+        if not attempt:
+            raise RuntimeError("Failed to halt frame!")
+        return attempt
 
     def resume_video(self):
         """Tell the camera to resume being a camera after the video has stopped
@@ -515,6 +587,17 @@ class VC0706Camera:
         for i in range(bufflen):
             buf[i] = self._buffer[i]
         return bufflen
+
+    def reset(self):
+        """Resets the camera.
+        It seems that resetting after changing the image works best.
+        This also resets to the default baud rate, so re-update that too.
+        """
+        baud = self.baudrate
+        rst = self._run_command(_RESET, bytes([0x0]), 5)
+        self._uart.baudrate = 37400  # Default baud rate
+        self.set_baudrate(baud)  # Have to reset the baud rate or it fails.
+        return rst
 
     def _run_command(self, cmd, args, resplen, flush=True):
         if flush:
