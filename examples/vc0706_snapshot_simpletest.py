@@ -49,7 +49,7 @@ time.sleep(3)
 print("SNAP!")
 print("Saving image. This may take some time.")
 stamp = time.monotonic()
-imgfile = open(IMAGE_FILE, "wb")
-vc0706.take_picture(imgfile, 640, 480)  # Can also use 320 x 240 or 160 x 120
-imgfile.close()
+
+with open(IMAGE_FILE, "wb") as imgfile:
+    vc0706.take_picture(imgfile, 640, 480)  # You can also use 320 x 240 or 160 x 120
 print("Finished in %0.1f seconds!" % (time.monotonic() - stamp))
