@@ -42,7 +42,6 @@ Implementation Notes
 * Adafruit CircuitPython firmware for M0 and M4-based boards:
   https://github.com/adafruit/circuitpython/releases
 """
-from os import listdir, chdir
 from io import FileIO
 from micropython import const
 
@@ -94,24 +93,20 @@ __GET_ZOOM = const(0x53)
 
 _CAMERA_DELAY = const(10)
 
+IMG_SIZES = {
+    (640, 480): IMAGE_SIZE_640x480,
+    (320, 240): IMAGE_SIZE_320x240,
+    (160, 120): IMAGE_SIZE_160x120,
+}
+
 
 def get_image_size(width, height):
-    """Takes width and height and returns the proper const."""
-    if (
-        width not in (640, 320, 160)
-        or height not in (480, 240, 120)
-        or width / height != 4 / 3
-    ):
+    """Takes width and height and returns the proper const.
+    Looks up via the IMG_SIZES dict"""
+    size = (width, height)
+    if size not in IMG_SIZES:
         raise ValueError("Image size must be 640x480, 320x240, or 160x120!")
-    # Now that we've discarded bad values:
-    size = 0x00  # Default 640x480
-    if width == 640 and height == 480:
-        size = IMAGE_SIZE_640x480
-    elif width == 320 and height == 240:
-        size = IMAGE_SIZE_320x240
-    elif width == 160 and height == 120:
-        size = IMAGE_SIZE_160x120
-    return size
+    return IMG_SIZES[size]
 
 
 class VC0706:
@@ -167,25 +162,6 @@ class VC0706:
         self._run_command(_SET_PORT, bytes(args), 7)
         self._uart.baudrate = baud
 
-    def set_baudrate(self, baud):
-        """As above, for internal use"""
-        divider = None
-        if baud == 9600:
-            divider = _BAUDRATE_9600
-        elif baud == 19200:
-            divider = _BAUDRATE_19200
-        elif baud == 38400:
-            divider = _BAUDRATE_38400
-        elif baud == 57600:
-            divider = _BAUDRATE_57600
-        elif baud == 115200:
-            divider = _BAUDRATE_115200
-        else:
-            raise ValueError("Unsupported baud rate")
-        args = [0x03, 0x01, (divider >> 8) & 0xFF, divider & 0xFF]
-        self._run_command(_SET_PORT, bytes(args), 7)
-        self._uart.baudrate = baud
-
     @property
     def image_size(self):
         """Get the current image size, will return a value of IMAGE_SIZE_640x480,
@@ -200,17 +176,6 @@ class VC0706:
         """Set the image size to a value of IMAGE_SIZE_640x480, IMAGE_SIZE_320x240, or
         IMAGE_SIZE_160x120.
         """
-        if size not in (IMAGE_SIZE_640x480, IMAGE_SIZE_320x240, IMAGE_SIZE_160x120):
-            raise ValueError(
-                "Size must be one of IMAGE_SIZE_640x480, IMAGE_SIZE_320x240, or "
-                "IMAGE_SIZE_160x120!"
-            )
-        return self._run_command(
-            _WRITE_DATA, bytes([0x05, 0x04, 0x01, 0x00, 0x19, size & 0xFF]), 5
-        )
-
-    def set_img_size(self, size):
-        """Literally the above, but for use internally."""
         if size not in (IMAGE_SIZE_640x480, IMAGE_SIZE_320x240, IMAGE_SIZE_160x120):
             raise ValueError(
                 "Size must be one of IMAGE_SIZE_640x480, IMAGE_SIZE_320x240, or "
@@ -246,42 +211,6 @@ class VC0706:
         (Such as what happens when a picture is taken).
         """
         return self._run_command(_FBUF_CTRL, bytes([0x1, _RESUMEFRAME]), 5)
-
-    def save_image(self, name="capture.jpg", overwrite=False):
-        """Saves a picture that was stored. Optional arguments for overwriting
-        the image.
-        """
-        # We don't want to overwrite unless we're told to.
-        # This involves checking to see if a file exists.
-        # Which requires checking if we were given a directory.
-        if name[0] == "/":
-            name = name[1:]  # Remove any leading slashes.
-        name = name.split("/")  # Separate into directories.
-        for directory in name[:-1]:  # Ignore the last one, it's the filename.
-            chdir(directory)  # OS will fail if the directory doesn't exist.
-        if name[-1] in listdir() and not overwrite:
-            # File exists. We're told not to overwrite it.
-            raise ValueError("File exists and overwrite is False!")
-        # Size of picture.
-        frame_length = self.frame_length
-        # The file doesn't exist, or we're good to overwrite it.
-        with open(name[-1], "wb") as outfile:
-            while frame_length > 0:
-                # Compute how much data is left to read as the lesser of remaining bytes
-                # or the copy buffer size (32 bytes at a time).  Buffer size MUST be
-                # a multiple of 4 and under 100.  Stick with 32!
-                to_read = min(frame_length, 32)
-                copy_buffer = bytearray(to_read)
-                # Now read picture data into the copy buffer.
-                if self.read_picture_into(copy_buffer) == 0:
-                    raise RuntimeError("Failed to read picture frame data!")
-                # Now write the data to the file, and decrement remaining bytes.
-                outfile.write(copy_buffer)
-                frame_length -= 32
-        # Return to our original directory.
-        for directory in name[:-1]:
-            chdir("..")
-        return True
 
     def read_picture_into(self, buf):
         """Read the next bytes of frame/picture data into the provided buffer.
@@ -320,17 +249,6 @@ class VC0706:
             buf[i] = self._buffer[i]
         return bufflen
 
-    def reset(self):
-        """Resets the camera.
-        It seems that resetting after changing the image works best.
-        This also resets to the default baud rate, so re-update that too.
-        """
-        baud = self.baudrate
-        rst = self._run_command(_RESET, bytes([0x0]), 5)
-        self._uart.baudrate = 37400  # Default baud rate
-        self.set_baudrate(baud)  # Have to reset the baud rate or it fails.
-        return rst
-
     def _run_command(self, cmd, args, resplen, flush=True):
         if flush:
             self._read_response(self._buffer, len(self._buffer))
@@ -361,7 +279,7 @@ class VC0706:
             self._uart.write(args)
 
 
-class VC0706Camera:
+class Camera:
     """Driver for VC0706 serial TTL camera module.
     This version re-does a few functions to make it work like the
     recently-implemented Camera module.
