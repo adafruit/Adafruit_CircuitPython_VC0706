@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2021 ladyada for Adafruit Industries
+# SPDX-License-Identifier: MIT
+
 """VC0706 image capture to local storage.
 You must wire up the VC0706 to a USB or hardware serial port.
 Primarily for use with Linux/Raspberry Pi but also can work with Mac/Windows"""
