@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2021 ladyada for Adafruit Industries
+# SPDX-License-Identifier: MIT
+
 """VC0706 image capture to SD card demo.
 You must wire up the VC0706 to the board's serial port, and a SD card holder
 to the board's SPI bus.  Use the Feather M0 Adalogger as it includes a SD
