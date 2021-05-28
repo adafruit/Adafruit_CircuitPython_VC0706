@@ -220,10 +220,10 @@ class VC0706:
         return True
 
     def get_motion_detect(self):
-        return self._run_command(_COMM_MOTION_STATUS, bytes([0x00]), 6):
+        return self._run_command(_COMM_MOTION_STATUS, bytes([0x00]), 6)
 
     def set_motion_detect(self, args):
-        return self._run_command(_COMM_MOTION_CTRL, bytes([0x01, args]), 5):
+        return self._run_command(_COMM_MOTION_CTRL, bytes([0x01, args]), 5)
 
     def _run_command(self, cmd, args, resplen, flush=True):
         if flush:
