@@ -216,18 +216,14 @@ class VC0706:
     def motion_detected(self):
         self._read_response(self._buffer, len(self._buffer))
         if not self._verify_response(_COMM_MOTION_DETECTED):
-            return  0
-        return 1
+            return  False
+        return True
 
     def get_motion_detect(self):
-        if not self._run_command(_COMM_MOTION_STATUS, bytes([0x00]), 6):
-            return 0
-        return 1
-        
+        return self._run_command(_COMM_MOTION_STATUS, bytes([0x00]), 6):
+
     def set_motion_detect(self, args):
-        if not self._run_command(_COMM_MOTION_CTRL, bytes([0x01, args]), 5):
-            return 0
-        return 1
+        return self._run_command(_COMM_MOTION_CTRL, bytes([0x01, args]), 5):
 
     def _run_command(self, cmd, args, resplen, flush=True):
         if flush:
