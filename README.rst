@@ -57,6 +57,11 @@ Usage Example
 
 See examples/snapshot.py.
 
+Documentation
+=============
+
+API documentation for this library can be found on `Read the Docs <https://circuitpython.readthedocs.io/projects/vc0706/en/latest/>`_.
+
 Contributing
 ============
 
