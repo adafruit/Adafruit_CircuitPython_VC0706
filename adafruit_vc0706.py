@@ -213,6 +213,23 @@ class VC0706:
             buf[i] = self._buffer[i]
         return n
 
+    def motion_detected(self):
+        """Read the gesture detection result"""
+        self._read_response(self._buffer, len(self._buffer))
+        if not self._verify_response(_COMM_MOTION_DETECTED):
+            return False
+        return True
+
+    def get_motion_detect(self):
+        """Query the gesture detection status"""
+        return self._run_command(_COMM_MOTION_STATUS, bytes([0x00]), 6)
+
+    def set_motion_detect(self, args):
+        """Set gesture detection status
+        args = 0 to unset, 1 to set
+        """
+        return self._run_command(_COMM_MOTION_CTRL, bytes([0x01, args]), 5)
+
     def _run_command(self, cmd, args, resplen, flush=True):
         if flush:
             self._read_response(self._buffer, len(self._buffer))
