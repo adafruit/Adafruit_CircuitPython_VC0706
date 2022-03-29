@@ -110,7 +110,7 @@ class VC0706:
 
     @baudrate.setter
     def baudrate(self, baud):
-        """Set the baudrate to 9600, 19200, 38400, 57600, or 115200. """
+        """Set the baudrate to 9600, 19200, 38400, 57600, or 115200."""
         divider = None
         if baud == 9600:
             divider = _BAUDRATE_9600
