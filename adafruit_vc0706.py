@@ -78,6 +78,7 @@ _CAMERA_DELAY = const(10)
 
 class VC0706:
     """Driver for VC0706 serial TTL camera module.
+
     :param ~busio.UART uart: uart serial or compatible interface
     :param int buffer_size: Receive buffer size
     """
@@ -225,7 +226,7 @@ class VC0706:
         return self._run_command(_COMM_MOTION_STATUS, bytes([0x00]), 6)
 
     def set_motion_detect(self, args):
-        """Set gesture detection status
+        """Set gesture detection status.
         args = 0 to unset, 1 to set
         """
         return self._run_command(_COMM_MOTION_CTRL, bytes([0x01, args]), 5)
