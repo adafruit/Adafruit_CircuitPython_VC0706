@@ -214,8 +214,9 @@ class VC0706:
             buf[i] = self._buffer[i]
         return n
 
+    @property
     def motion_detected(self):
-        """Read the gesture detection result"""
+        """Whether a gesture was detected"""
         self._read_response(self._buffer, len(self._buffer))
         if not self._verify_response(_COMM_MOTION_DETECTED):
             return False
