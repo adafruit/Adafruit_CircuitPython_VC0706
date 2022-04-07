@@ -221,15 +221,13 @@ class VC0706:
             return False
         return True
 
-    def get_motion_detect(self):
-        """Query the gesture detection status"""
+    @property
+    def motion_detection(self):
+        """The gesture detection status"""
         return self._run_command(_COMM_MOTION_STATUS, bytes([0x00]), 6)
 
-    def set_motion_detect(self, enabled):
-        """Set gesture detection status.
-
-        :param bool enabled: False to disable motion detected, True to enable motion detection.
-        """
+    @motion_detection.setter
+    def motion_detection(self, enabled):
         return self._run_command(_COMM_MOTION_CTRL, bytes([0x01, enabled]), 5)
 
     def _run_command(self, cmd, args, resplen, flush=True):
