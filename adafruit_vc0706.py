@@ -27,6 +27,13 @@ Implementation Notes
 """
 from micropython import const
 
+try:
+    from typing import Optional
+    import circuitpython_typing
+    import busio
+except ImportError:
+    pass
+
 __version__ = "0.0.0-auto.0"
 __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_VC0706.git"
 
@@ -83,7 +90,7 @@ class VC0706:
     :param int buffer_size: Receive buffer size
     """
 
-    def __init__(self, uart, *, buffer_size=100):
+    def __init__(self, uart: busio.UART, *, buffer_size: int = 100) -> None:
         self._uart = uart
         self._buffer = bytearray(buffer_size)
         self._frame_ptr = 0
@@ -97,7 +104,7 @@ class VC0706:
                 raise RuntimeError("Failed to get response from VC0706, check wiring!")
 
     @property
-    def version(self):
+    def version(self) -> str:
         """Return camera version byte string."""
         # Clear buffer to ensure the end of a string can be found.
         self._send_command(_GEN_VERSION, b"\x01")
@@ -105,12 +112,12 @@ class VC0706:
         return str(self._buffer[:readlen], "ascii")
 
     @property
-    def baudrate(self):
+    def baudrate(self) -> int:
         """Return the currently configured baud rate."""
         return self._uart.baudrate
 
     @baudrate.setter
-    def baudrate(self, baud):
+    def baudrate(self, baud: int) -> None:
         """Set the baudrate to 9600, 19200, 38400, 57600, or 115200."""
         divider = None
         if baud == 9600:
@@ -130,7 +137,7 @@ class VC0706:
         self._uart.baudrate = baud
 
     @property
-    def image_size(self):
+    def image_size(self) -> int:
         """Get the current image size, will return a value of IMAGE_SIZE_640x480,
         IMAGE_SIZE_320x240, or IMAGE_SIZE_160x120.
         """
@@ -139,7 +146,7 @@ class VC0706:
         return self._buffer[5]
 
     @image_size.setter
-    def image_size(self, size):
+    def image_size(self, size: int) -> bool:
         """Set the image size to a value of IMAGE_SIZE_640x480, IMAGE_SIZE_320x240, or
         IMAGE_SIZE_160x120.
         """
@@ -153,8 +160,8 @@ class VC0706:
         )
 
     @property
-    def frame_length(self):
-        """Return the length in bytes of the currently capture frame/picture."""
+    def frame_length(self) -> int:
+        """Return the length in bytes of the currently captured frame/picture."""
         if not self._run_command(_GET_FBUF_LEN, b"\x01\x00", 9):
             return 0
         frame_length = self._buffer[5]
@@ -166,18 +173,18 @@ class VC0706:
         frame_length |= self._buffer[8]
         return frame_length
 
-    def take_picture(self):
+    def take_picture(self) -> bool:
         """Tell the camera to take a picture.  Returns True if successful."""
         self._frame_ptr = 0
         return self._run_command(_FBUF_CTRL, bytes([0x1, _STOPCURRENTFRAME]), 5)
 
-    def resume_video(self):
+    def resume_video(self) -> bool:
         """Tell the camera to resume being a camera after the video has stopped
         (Such as what happens when a picture is taken).
         """
         return self._run_command(_FBUF_CTRL, bytes([0x1, _RESUMEFRAME]), 5)
 
-    def read_picture_into(self, buf):
+    def read_picture_into(self, buf: bytearray) -> int:
         """Read the next bytes of frame/picture data into the provided buffer.
         Returns the number of bytes written to the buffer (might be less than
         the size of the buffer).  Buffer MUST be a multiple of 4 and 100 or
@@ -214,25 +221,27 @@ class VC0706:
             buf[i] = self._buffer[i]
         return n
 
-    def motion_detected(self):
+    def motion_detected(self) -> bool:
         """Read the gesture detection result"""
         self._read_response(self._buffer, len(self._buffer))
         if not self._verify_response(_COMM_MOTION_DETECTED):
             return False
         return True
 
-    def get_motion_detect(self):
+    def get_motion_detect(self) -> bool:
         """Query the gesture detection status"""
         return self._run_command(_COMM_MOTION_STATUS, bytes([0x00]), 6)
 
-    def set_motion_detect(self, enabled):
+    def set_motion_detect(self, enabled: bool) -> bool:
         """Set gesture detection status.
 
         :param bool enabled: False to disable motion detected, True to enable motion detection.
         """
         return self._run_command(_COMM_MOTION_CTRL, bytes([0x01, enabled]), 5)
 
-    def _run_command(self, cmd, args, resplen, flush=True):
+    def _run_command(
+        self, cmd: int, args: bytes, resplen: int, flush: bool = True
+    ) -> bool:
         if flush:
             self._read_response(self._buffer, len(self._buffer))
         self._send_command(cmd, args)
@@ -242,10 +251,12 @@ class VC0706:
             return False
         return True
 
-    def _read_response(self, result, numbytes):
+    def _read_response(
+        self, result: circuitpython_typing.ReadableBuffer, numbytes: int
+    ) -> Optional[int]:
         return self._uart.readinto(memoryview(result)[0:numbytes])
 
-    def _verify_response(self, cmd):
+    def _verify_response(self, cmd: int) -> bool:
         return (
             self._buffer[0] == 0x76
             and self._buffer[1] == _SERIAL
@@ -253,7 +264,9 @@ class VC0706:
             and self._buffer[3] == 0x00
         )
 
-    def _send_command(self, cmd, args=None):
+    def _send_command(
+        self, cmd: int, args: Optional[circuitpython_typing.WritableBuffer] = None
+    ) -> None:
         self._command_header[0] = 0x56
         self._command_header[1] = _SERIAL
         self._command_header[2] = cmd & 0xFF
