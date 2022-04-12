@@ -265,7 +265,7 @@ class VC0706:
         )
 
     def _send_command(
-        self, cmd: int, args: Optional[circuitpython_typing.WritableBuffer] = None
+        self, cmd: int, args: Optional[circuitpython_typing.WriteableBuffer] = None
     ) -> None:
         self._command_header[0] = 0x56
         self._command_header[1] = _SERIAL
