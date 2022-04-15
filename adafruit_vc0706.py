@@ -28,7 +28,7 @@ Implementation Notes
 from micropython import const
 
 try:
-    from typing import Optional
+    from typing import Optional, Literal
     import circuitpython_typing
     import busio
 except ImportError:
@@ -112,12 +112,12 @@ class VC0706:
         return str(self._buffer[:readlen], "ascii")
 
     @property
-    def baudrate(self) -> int:
+    def baudrate(self) -> Literal[9600, 19200, 38400, 57600, 115200]:
         """Return the currently configured baud rate."""
         return self._uart.baudrate
 
     @baudrate.setter
-    def baudrate(self, baud: int) -> None:
+    def baudrate(self, baud: Literal[9600, 19200, 38400, 57600, 115200]) -> None:
         """Set the baudrate to 9600, 19200, 38400, 57600, or 115200."""
         divider = None
         if baud == 9600:
@@ -184,7 +184,7 @@ class VC0706:
         """
         return self._run_command(_FBUF_CTRL, bytes([0x1, _RESUMEFRAME]), 5)
 
-    def read_picture_into(self, buf: bytearray) -> int:
+    def read_picture_into(self, buf: circuitpython_typing.WriteableBuffer) -> int:
         """Read the next bytes of frame/picture data into the provided buffer.
         Returns the number of bytes written to the buffer (might be less than
         the size of the buffer).  Buffer MUST be a multiple of 4 and 100 or
@@ -252,7 +252,7 @@ class VC0706:
         return True
 
     def _read_response(
-        self, result: circuitpython_typing.ReadableBuffer, numbytes: int
+        self, result: circuitpython_typing.WriteableBuffer, numbytes: int
     ) -> Optional[int]:
         return self._uart.readinto(memoryview(result)[0:numbytes])
 
@@ -265,7 +265,7 @@ class VC0706:
         )
 
     def _send_command(
-        self, cmd: int, args: Optional[circuitpython_typing.WriteableBuffer] = None
+        self, cmd: int, args: Optional[circuitpython_typing.ReadableBuffer] = None
     ) -> None:
         self._command_header[0] = 0x56
         self._command_header[1] = _SERIAL
