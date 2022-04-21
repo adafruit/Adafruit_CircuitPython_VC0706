@@ -221,22 +221,21 @@ class VC0706:
             buf[i] = self._buffer[i]
         return n
 
+    @property
     def motion_detected(self) -> bool:
-        """Read the gesture detection result"""
+        """Whether a gesture was detected"""
         self._read_response(self._buffer, len(self._buffer))
         if not self._verify_response(_COMM_MOTION_DETECTED):
             return False
         return True
 
-    def get_motion_detect(self) -> bool:
-        """Query the gesture detection status"""
+    @property
+    def motion_detection(self) -> bool:
+        """The gesture detection status"""
         return self._run_command(_COMM_MOTION_STATUS, bytes([0x00]), 6)
 
-    def set_motion_detect(self, enabled: bool) -> bool:
-        """Set gesture detection status.
-
-        :param bool enabled: False to disable motion detected, True to enable motion detection.
-        """
+    @motion_detection.setter
+    def motion_detection(self, enabled: bool) -> bool:
         return self._run_command(_COMM_MOTION_CTRL, bytes([0x01, enabled]), 5)
 
     def _run_command(
