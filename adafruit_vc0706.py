@@ -28,9 +28,14 @@ Implementation Notes
 from micropython import const
 
 try:
-    from typing import Optional, Literal
+    from typing import Optional
     import circuitpython_typing
     import busio
+
+    try:
+        from typing import Literal
+    except ImportError:
+        from typing_extensions import Literal
 except ImportError:
     pass
 
