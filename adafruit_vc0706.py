@@ -31,6 +31,7 @@ try:
     from typing import Optional
     import circuitpython_typing
     import busio
+
     try:
         from typing import Literal
     except ImportError:
