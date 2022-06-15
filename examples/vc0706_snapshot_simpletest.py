@@ -14,11 +14,12 @@ import time
 
 import board
 import busio
-# import digitalio # Uncomment if your board doesn't support sdcardio 
+
+# import digitalio # Uncomment if your board doesn't support sdcardio
 import storage
 
 # import adafruit_sdcard # Uncomment if your board doesn't support sdcardio
-import sdcardio # Comment out if your board doesn't support sdcardio
+import sdcardio  # Comment out if your board doesn't support sdcardio
 import adafruit_vc0706
 
 
@@ -34,7 +35,9 @@ spi = busio.SPI(board.SCK, MOSI=board.MOSI, MISO=board.MISO)
 # Uncomment if your board doesn't support sdcardio
 # sd_cs = digitalio.DigitalInOut(SD_CS_PIN)
 # sdcard = adafruit_sdcard.SDCard(spi, sd_cs)
-sdcard = sdcardio.SDCard(spi, SD_CS_PIN) # Comment out if your board doesn't support sdcardio
+sdcard = sdcardio.SDCard(
+    spi, SD_CS_PIN
+)  # Comment out if your board doesn't support sdcardio
 
 vfs = storage.VfsFat(sdcard)
 storage.mount(vfs, "/sd")
