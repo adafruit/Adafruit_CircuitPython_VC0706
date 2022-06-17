@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2017 Tim Cocks for Adafruit Industries
+#
+# SPDX-License-Identifier: MIT
+
 import board
 import busio
 import adafruit_vc0706
