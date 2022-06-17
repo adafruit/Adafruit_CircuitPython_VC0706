@@ -20,7 +20,7 @@ vc0706.baudrate = 115200
 
 # Set the image size.
 vc0706.image_size = adafruit_vc0706.IMAGE_SIZE_160x120  # Or set IMAGE_SIZE_320x240 or
-# IMAGE_SIZE_160x120
+
 # Note you can also read the property and compare against those values to
 # see the current size:
 size = vc0706.image_size
@@ -31,16 +31,12 @@ elif size == adafruit_vc0706.IMAGE_SIZE_320x240:
 elif size == adafruit_vc0706.IMAGE_SIZE_160x120:
     print("Using 160x120 size image.")
 
-vc0706.set_motion_detect(1)
-print("detecting motion:")
-print(vc0706.get_motion_detect())
+# Turn on motion detection
+vc0706.motion_detection = True
 
+# Detect motion
 while True:
-    if vc0706.motion_detected():
-        print("Motion!")
-        print("disable motion detect")
-        vc0706.set_motion_detect(0)
-        print("enable motion detect")
-        vc0706.set_motion_detect(1)
+    if vc0706.motion_detected:
+        print("Motion detected!")
     else:
         print("....")
