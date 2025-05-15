@@ -14,9 +14,9 @@ Introduction
     :target: https://github.com/adafruit/Adafruit_CircuitPython_VC0706/actions/
     :alt: Build Status
 
-.. image:: https://img.shields.io/badge/code%20style-black-000000.svg
-    :target: https://github.com/psf/black
-    :alt: Code Style: Black
+.. image:: https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json
+    :target: https://github.com/astral-sh/ruff
+    :alt: Code Style: Ruff
 
 CircuitPython module for use with the `VC0706 serial TTL camera <https://www.adafruit.com/product/397>`_.  Allows basic image capture and download of image data from the camera over a serial connection.  See examples for demo
 of saving image to a SD card (must be wired up separately) or internally.
