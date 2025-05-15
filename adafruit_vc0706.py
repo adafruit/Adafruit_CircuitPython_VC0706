@@ -25,12 +25,14 @@ Implementation Notes
 * Adafruit CircuitPython firmware for the ESP8622 and M0-based boards:
   https://github.com/adafruit/circuitpython/releases
 """
+
 from micropython import const
 
 try:
     from typing import Optional
-    import circuitpython_typing
+
     import busio
+    import circuitpython_typing
 
     try:
         from typing import Literal
@@ -66,12 +68,10 @@ _STOPNEXTFRAME = const(0x1)
 _RESUMEFRAME = const(0x3)
 _STEPFRAME = const(0x2)
 
-# pylint doesn't like the lowercase x but it makes it more readable.
-# pylint: disable=invalid-name
+# lowercase x makes variable names more readable.
 IMAGE_SIZE_640x480 = const(0x00)
 IMAGE_SIZE_320x240 = const(0x11)
 IMAGE_SIZE_160x120 = const(0x22)
-# pylint: enable=invalid-name
 _BAUDRATE_9600 = const(0xAEC8)
 _BAUDRATE_19200 = const(0x56E4)
 _BAUDRATE_38400 = const(0x2AF2)
@@ -155,14 +155,12 @@ class VC0706:
         """Set the image size to a value of IMAGE_SIZE_640x480, IMAGE_SIZE_320x240, or
         IMAGE_SIZE_160x120.
         """
-        if size not in (IMAGE_SIZE_640x480, IMAGE_SIZE_320x240, IMAGE_SIZE_160x120):
+        if size not in {IMAGE_SIZE_640x480, IMAGE_SIZE_320x240, IMAGE_SIZE_160x120}:
             raise ValueError(
                 "Size must be one of IMAGE_SIZE_640x480, IMAGE_SIZE_320x240, or "
                 "IMAGE_SIZE_160x120!"
             )
-        return self._run_command(
-            _WRITE_DATA, bytes([0x05, 0x04, 0x01, 0x00, 0x19, size & 0xFF]), 5
-        )
+        return self._run_command(_WRITE_DATA, bytes([0x05, 0x04, 0x01, 0x00, 0x19, size & 0xFF]), 5)
 
     @property
     def frame_length(self) -> int:
@@ -243,9 +241,7 @@ class VC0706:
     def motion_detection(self, enabled: bool) -> bool:
         return self._run_command(_COMM_MOTION_CTRL, bytes([0x01, enabled]), 5)
 
-    def _run_command(
-        self, cmd: int, args: bytes, resplen: int, flush: bool = True
-    ) -> bool:
+    def _run_command(self, cmd: int, args: bytes, resplen: int, flush: bool = True) -> bool:
         if flush:
             self._read_response(self._buffer, len(self._buffer))
         self._send_command(cmd, args)

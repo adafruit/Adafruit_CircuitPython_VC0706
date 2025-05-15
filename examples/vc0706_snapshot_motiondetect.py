@@ -4,6 +4,7 @@
 
 import board
 import busio
+
 import adafruit_vc0706
 
 # Create a serial connection for the VC0706 connection, speed is auto-detected.

@@ -15,13 +15,13 @@ import time
 import board
 import busio
 
+# import adafruit_sdcard # Uncomment if your board doesn't support sdcardio
+import sdcardio  # Comment out if your board doesn't support sdcardio
+
 # import digitalio # Uncomment if your board doesn't support sdcardio
 import storage
 
-# import adafruit_sdcard # Uncomment if your board doesn't support sdcardio
-import sdcardio  # Comment out if your board doesn't support sdcardio
 import adafruit_vc0706
-
 
 # Configuration:
 SD_CS_PIN = board.D10  # CS for SD card (SD_CS is for Feather Adalogger)
@@ -35,9 +35,7 @@ spi = busio.SPI(board.SCK, MOSI=board.MOSI, MISO=board.MISO)
 # Uncomment if your board doesn't support sdcardio
 # sd_cs = digitalio.DigitalInOut(SD_CS_PIN)
 # sdcard = adafruit_sdcard.SDCard(spi, sd_cs)
-sdcard = sdcardio.SDCard(
-    spi, SD_CS_PIN
-)  # Comment out if your board doesn't support sdcardio
+sdcard = sdcardio.SDCard(spi, SD_CS_PIN)  # Comment out if your board doesn't support sdcardio
 
 vfs = storage.VfsFat(sdcard)
 storage.mount(vfs, "/sd")
@@ -76,14 +74,13 @@ if not vc0706.take_picture():
 
 # Print size of picture in bytes.
 frame_length = vc0706.frame_length
-print("Picture size (bytes): {}".format(frame_length))
+print(f"Picture size (bytes): {frame_length}")
 
 # Open a file for writing (overwriting it if necessary).
 # This will write 50 bytes at a time using a small buffer.
 # You MUST keep the buffer size under 100!
-print("Writing image: {}".format(IMAGE_FILE), end="")
+print(f"Writing image: {IMAGE_FILE}", end="")
 stamp = time.monotonic()
-# pylint: disable=invalid-name
 with open(IMAGE_FILE, "wb") as outfile:
     wcount = 0
     while frame_length > 0:
@@ -103,7 +100,6 @@ with open(IMAGE_FILE, "wb") as outfile:
         if wcount >= 64:
             print(".", end="")
             wcount = 0
-# pylint: enable=invalid-name
 print()
 print("Finished in %0.1f seconds!" % (time.monotonic() - stamp))
 # Turn the camera back into video mode.

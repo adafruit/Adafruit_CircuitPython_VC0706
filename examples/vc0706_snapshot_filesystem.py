@@ -6,8 +6,10 @@ You must wire up the VC0706 to a USB or hardware serial port.
 Primarily for use with Linux/Raspberry Pi but also can work with Mac/Windows"""
 
 import time
-import busio
+
 import board
+import busio
+
 import adafruit_vc0706
 
 # Set this to the full path to the file name to save the captured image. WILL OVERWRITE!
@@ -59,15 +61,13 @@ if not vc0706.take_picture():
 
 # Print size of picture in bytes.
 frame_length = vc0706.frame_length
-print("Picture size (bytes): {}".format(frame_length))
+print(f"Picture size (bytes): {frame_length}")
 
 # Open a file for writing (overwriting it if necessary).
 # This will write 50 bytes at a time using a small buffer.
 # You MUST keep the buffer size under 100!
-print("Writing image: {}".format(IMAGE_FILE), end="", flush=True)
+print(f"Writing image: {IMAGE_FILE}", end="", flush=True)
 stamp = time.monotonic()
-# Pylint doesn't like the wcount variable being lowercase, but uppercase makes less sense
-# pylint: disable=invalid-name
 with open(IMAGE_FILE, "wb") as outfile:
     wcount = 0
     while frame_length > 0:
@@ -89,7 +89,6 @@ with open(IMAGE_FILE, "wb") as outfile:
             print(".", end="", flush=True)
             wcount = 0
 print()
-# pylint: enable=invalid-name
 print("Finished in %0.1f seconds!" % (time.monotonic() - stamp))
 # Turn the camera back into video mode.
 vc0706.resume_video()
