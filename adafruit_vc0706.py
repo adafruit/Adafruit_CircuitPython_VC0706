@@ -157,8 +157,7 @@ class VC0706:
         """
         if size not in {IMAGE_SIZE_640x480, IMAGE_SIZE_320x240, IMAGE_SIZE_160x120}:
             raise ValueError(
-                "Size must be one of IMAGE_SIZE_640x480, IMAGE_SIZE_320x240, or "
-                "IMAGE_SIZE_160x120!"
+                "Size must be one of IMAGE_SIZE_640x480, IMAGE_SIZE_320x240, or IMAGE_SIZE_160x120!"
             )
         return self._run_command(_WRITE_DATA, bytes([0x05, 0x04, 0x01, 0x00, 0x19, size & 0xFF]), 5)
 
